@@ -94,33 +94,34 @@ export const createCheckoutSession = async (req, res) => {
     });
 
     res.send({ url: session.url });
+   
   } 
  
 
   const createOrder = async (customer, data) => {
     try {
       const item = JSON.parse(customer.metadata.cart);
-      console.log(item)
+      console.log(customer)
       const pool = await sql.connect(config.sql);
       const order = await pool
         .request()
-        .input('userId', sql.Int, customer.metadata.user_id)
+        .input('userId', sql.VarChar,  data.customer_details.name)
         .input('paymentIntent', sql.VarChar(), data.payment_intent)
         .input('productName', sql.VarChar(), item[0].Title)
-        .input('productID', sql.Int, item[0].ProductID        )
+        .input('productID', sql.Int,  item[0].ProductID)
         .input('quantity', sql.Int, item[0].cartTotalquantity)
-        .input('shippingAddress', sql.VarChar(), data.customer_details.address.country)
+        .input('shippingAddress', sql.VarChar(), data.customer_details.address.city)
         .input('totalAmount', sql.Int, data.amount_total/100)
-        .query('INSERT INTO orders (userID, productName, quantity, shippingAddress,totalAmount, paymentIntent) VALUES (@userID, @productName, @quantity, @shippingAddress, @totalAmount, @paymentIntent)');
+        .query('INSERT INTO orders (userId,productID, productName, quantity, shippingAddress,totalAmount, paymentIntent) VALUES (@userId,@productID, @productName, @quantity, @shippingAddress, @totalAmount, @paymentIntent)');
   
     } catch (error) {
       console.error('Error creating order:', error);
     }
   };
   //webhooks
-// This is your Stripe CLI webhook secret for testing your endpoint locally.
+
 let endpointSecret;
-// endpointSecret = "whsec_113d78c5575576a5ad51e213337c7b108083c7039052f6f737ebe0689bc7cbc0";
+
  
 export const webhookHandler = (request, response) => {
   const sig = request.headers['stripe-signature'];
@@ -128,6 +129,7 @@ export const webhookHandler = (request, response) => {
   let data;
   let eventType;
   if(endpointSecret){
+   
 
     let event;
   
@@ -139,7 +141,10 @@ export const webhookHandler = (request, response) => {
       console.log(err)
       return;
     }
-  }else{
+
+  }
+  else{
+    
     data = request.body.data.object;
     eventType = request.body.type;
   }
@@ -149,15 +154,13 @@ export const webhookHandler = (request, response) => {
     stripe.customers.retrieve(data.customer).then(
       (customer)=>{
         // const item = JSON.parse(customer.metadata.cart)
-        // console.log(...item)
-        // console.log(item[0].name)
+        
         createOrder(customer, data)
         // console.log(data)
-        // console.log(customer)
+        
       }
     ).catch(err=> console.log(err.message))
    }
-
 
   // Return a 200 response to acknowledge receipt of the event
   response.send().end();

@@ -6,7 +6,7 @@ const routes = (app) => {
     app.route('/create-checkout-session')
      .post( createCheckoutSession);
     
-     app.route('/webhook').post( express.raw({ type: 'application/json' }), webhookHandler)  
+     app.route('/stripe_webhooks').post(webhookHandler, express.raw({ type: 'application/json' }))  
 
 };
 export default routes;

@@ -1,4 +1,5 @@
 
+import { getAllOrders } from "../contollers/Order.js";
 import { createProduct, deleteProduct, getAllProducts, getProduct, updateProduct } from "../contollers/product.js";
 
 
@@ -15,8 +16,8 @@ const routes = (app) => {
 
     
 
-        
-
+        app.route('/order')
+            .get(getAllOrders);
 
   
 

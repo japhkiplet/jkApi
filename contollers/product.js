@@ -95,7 +95,7 @@ export const updateProduct = async (req, res) => {
             .input('Category', sql.VarChar, Category)
             .input('Price', sql.VarChar, Price)
             .input('ImageURL', sql.VarChar, ImageURL)
-            .query("update Products set Title=@Title, Category=@Category, Price=@Price, ImageURL=@ImageURL where ProductID=@ProductID")
+            .query("update Products set Title=@Title, Category=@Category, Price=@Price, ImageURL=@ImageURL where Title=@Title")
         res.status(200).json({ message: 'product updated successfully' })
     } catch (error) {
         res.status(200).json(error);
