@@ -11,7 +11,7 @@ export const createCheckoutSession = async (req, res) => {
   const customer = await stripe.customers.create({
     metadata: {
       userID : req.body.userID,
-      cart: JSON.stringify(req.body.cartItems),
+     
     }
   })
       const line_items = req.body.cartItems.map((item)=>{
@@ -98,18 +98,18 @@ export const createCheckoutSession = async (req, res) => {
   } 
  
 
-  const createOrder = async (customer, data) => {
+  const createOrder = async (customer, data , lineItems) => {
     try {
-      const item = JSON.parse(customer.metadata.cart);
+      
       console.log(customer)
       const pool = await sql.connect(config.sql);
       const order = await pool
         .request()
         .input('userId', sql.VarChar,  data.customer_details.name)
         .input('paymentIntent', sql.VarChar(), data.payment_intent)
-        .input('productName', sql.VarChar(), item[0].Title)
-        .input('productID', sql.Int,  item[0].ProductID)
-        .input('quantity', sql.Int, item[0].cartTotalquantity)
+        .input('productName', sql.VarChar(), lineItems.Title)
+        .input('productID', sql.Int,  lineItems.ProductID)
+        .input('quantity', sql.Int, lineItems.cartTotalquantity)
         .input('shippingAddress', sql.VarChar(), data.customer_details.address.city)
         .input('totalAmount', sql.Int, data.amount_total/100)
         .query('INSERT INTO orders (userId,productID, productName, quantity, shippingAddress,totalAmount, paymentIntent) VALUES (@userId,@productID, @productName, @quantity, @shippingAddress, @totalAmount, @paymentIntent)');
@@ -151,15 +151,18 @@ export const webhookHandler = (request, response) => {
 
   // Handle the event
    if(eventType === "checkout.session.completed"){
-    stripe.customers.retrieve(data.customer).then(
-      (customer)=>{
-        // const item = JSON.parse(customer.metadata.cart)
-        
-        createOrder(customer, data)
-        // console.log(data)
-        
-      }
-    ).catch(err=> console.log(err.message))
+    stripe.customers.retrieve(data.customer).then((customer)=>{
+        stripe.checkout.sessions.listLineItems(
+          data.id,
+          {},
+          function(err, lineItems) {
+            console.log("line_items",lineItems)
+            createOrder(customer, data , lineItems)
+          }
+        );
+         
+      })
+      .catch(err=> console.log(err.message))
    }
 
   // Return a 200 response to acknowledge receipt of the event

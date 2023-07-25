@@ -1,5 +1,6 @@
 
 import { getAllOrders } from "../contollers/Order.js";
+// import { isAdmin } from "../contollers/middleware.js";
 import { createProduct, deleteProduct, getAllProducts, getProduct, updateProduct } from "../contollers/product.js";
 
 

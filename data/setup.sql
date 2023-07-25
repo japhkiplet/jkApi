@@ -16,7 +16,7 @@ create table Users(
     password varchar(100),
 )
  create table orders(
-  userId int ,
+  userId varchar(50) ,
   paymentIntent VARCHAR(50),
   productName VARCHAR(50),
   productID int,
